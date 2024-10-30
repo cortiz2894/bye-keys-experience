@@ -1,104 +1,1036 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useMemo, useState, useLayoutEffect } from "react";
 import {
   useGLTF,
-  Text,
-  MeshTransmissionMaterial,
-  Html,
-} from '@react-three/drei';
-import { useThree, useFrame } from '@react-three/fiber';
-import { Leva, useControls } from 'leva';
-import gsap from 'gsap';
+  OrbitControls,
+  TransformControls,
+  PivotControls,
+  BakeShadows,
+  DragControls,
+  useHelper,
+  Bounds,
+  useCursor,
+} from "@react-three/drei";
+
+import { applyProps } from "@react-three/fiber";
+import * as THREE from "three";
+import { Perf } from "r3f-perf";
+import { useControls } from "leva";
+import {
+  Selection,
+  Select,
+  EffectComposer,
+  Outline,
+} from "@react-three/postprocessing";
 
 export default function Model(props) {
-  const { nodes, materials } = useGLTF('./gltb/404_separate_text.glb');
-  const { viewport } = useThree();
-  const firstLetter = useRef();
-  const secondLetter = useRef();
-  const thirdLetter = useRef();
-  const meshGroup = useRef();
+  const FirstSwitchRef = useRef();
+  const ThirdSwitchRef = useRef();
+  const directionalLightRef = useRef();
 
-  useFrame(({ mouse }) => {
-    const x = mouse.x * viewport.width * 0.008;
-    const y = mouse.y * viewport.height * 0.008;
-    meshGroup.current.position.set(x, y, 0);
-  });
+  useHelper(directionalLightRef, THREE.DirectionalLightHelper, 1);
 
-  const materialProps = useControls({
-    thickness: { value: 0.1, min: 0, max: 3, step: 0.05 },
-    roughness: { value: 0.1, min: 0, max: 1, step: 0.1 },
-    transmission: { value: 1, min: 0, max: 1, step: 0.1 },
-    ior: { value: 0.5, min: 0, max: 3, step: 0.1 },
-    chromaticAberration: { value: 0.43, min: 0, max: 1 },
-    backside: { value: true },
-  });
+  const { nodes, materials, scene } = useGLTF("./gltb/keyboard_for_R3F.glb");
+  const [hovered, setHovered] = useState();
 
-  useEffect(() => {
-    gsap.fromTo(
-      meshGroup.current.scale,
-      { x: 3, y: 3, z: 3 },
-      { x: 1, y: 1, z: 1, duration: 1, ease: 'hop' }
-    );
+  useCursor(hovered, "grab");
 
-    meshGroup.current.children.forEach((child) => {
-      if (child.material) {
-        child.material.transparent = true;
-        gsap.fromTo(
-          child.material,
-          { opacity: 0 },
-          { opacity: 1, duration: 2, ease: 'power2.out' }
-        );
+  const { intensity, positionY, positionX, positionZ, color } = useControls(
+    "directionalLight",
+    {
+      intensity: { value: 0.85, min: 0, max: 5, step: 0.05 },
+      positionY: { value: 3.4, min: -10, max: 20, step: 0.1 },
+      positionX: { value: 0, min: -10, max: 20, step: 0.1 },
+      positionZ: { value: 10, min: -10, max: 20, step: 0.1 },
+    }
+  );
+
+  const emissiveMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color("#2e1aff"),
+        toneMapped: false,
+        emissive: new THREE.Color("#2e1aff"),
+        emissiveIntensity: 18,
+        metalness: 0.5,
+        roughness: 0.3,
+      }),
+    []
+  );
+
+  useLayoutEffect(() => {
+    Object.values(nodes).forEach((node) => {
+      if (node.isMesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
       }
     });
-  }, []);
+    applyProps(materials["visor_keyboard.001"], {
+      emissiveIntensity: 1.13,
+      toneMapped: false,
+    });
+  }, [nodes, materials]);
 
   return (
-    <group scale={viewport.width / 4} {...props} dispose={null}>
-      <Text fontSize={0.3} position={[0, -0.45, -0.5]}>
-        Page Not found
-      </Text>
-      <Text fontSize={0.1} position={[0, -0.8, -0.5]}>
-        Sorry we couldn&apos;t find the page you looking for
-      </Text>
-      <group ref={meshGroup}>
+    // <PivotControls anchor={[0, 0, 0]}>
+    <>
+      <Perf position="top-left" />
+      <directionalLight
+        ref={directionalLightRef}
+        position={[positionX, positionY, positionZ]}
+        intensity={intensity}
+        color={color}
+        castShadow
+        shadow-normalBias={0.04}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={0.1}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+      />
+      <OrbitControls
+        makeDefault
+        minDistance={4}
+        maxDistance={4}
+        minPolarAngle={0.5}
+        maxPolarAngle={Math.PI / 2}
+      />
+      <group {...props} dispose={null} castShadow receiveShadow>
+        <group
+          position={[0.008, 0.033, 0.071]}
+          rotation={[Math.PI, 0, Math.PI]}
+        >
+          <mesh
+            receiveShadow
+            geometry={nodes.Grid.geometry}
+            material={materials.BaseMetalic}
+          />
+          <mesh
+            receiveShadow
+            geometry={nodes.Grid_1.geometry}
+            material={materials.BaseMetalic}
+          />
+          <mesh
+            receiveShadow
+            geometry={nodes.Grid_2.geometry}
+            material={materials.BaseMetalic}
+          />
+        </group>
         <mesh
           castShadow
           receiveShadow
-          geometry={nodes.TExt_original.geometry}
-          material={nodes.TExt_original.material}
-          position={[-0.736, 0, -0.05]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={1.435}
-          ref={firstLetter}
-        >
-          <MeshTransmissionMaterial {...materialProps} />
-        </mesh>
+          geometry={nodes.Cube.geometry}
+          material={materials.TeclasNegras}
+          position={[-1.453, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
         <mesh
           castShadow
           receiveShadow
-          geometry={nodes.TExt_original001.geometry}
-          material={nodes.TExt_original001.material}
-          position={[-0.005, -0.007, -0.05]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={1.435}
-          ref={secondLetter}
-        >
-          <MeshTransmissionMaterial {...materialProps} />
-        </mesh>
+          geometry={nodes.Cube001.geometry}
+          material={materials.TeclasNegras}
+          position={[-1.243, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
         <mesh
           castShadow
           receiveShadow
-          geometry={nodes.TExt_original002.geometry}
-          material={nodes.TExt_original002.material}
-          position={[0.699, 0, -0.05]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={1.435}
-          ref={thirdLetter}
+          geometry={nodes.Cube003.geometry}
+          material={materials.TeclasNegras}
+          position={[-0.821, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube004.geometry}
+          material={materials.TeclasNegras}
+          position={[-0.61, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube005.geometry}
+          material={materials.TeclasNegras}
+          position={[-0.399, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube007.geometry}
+          material={materials.TeclasNegras}
+          position={[0.022, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube008.geometry}
+          material={materials.TeclasNegras}
+          position={[0.233, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube010.geometry}
+          material={materials.TeclasNegras}
+          position={[0.645, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube011.geometry}
+          material={materials.TeclasNegras}
+          position={[0.856, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Tecla_Negra.geometry}
+          material={materials.TeclasNegras}
+          position={[1.067, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube014.geometry}
+          material={materials.TeclasNegras}
+          position={[1.474, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube015.geometry}
+          material={materials.TeclasNegras}
+          position={[1.684, -0.393, 0.067]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.screen.geometry}
+          material={materials.Material}
+          position={[-1.398, 0.584, 0.095]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={1.074}
+        />
+        <group position={[0.008, 0.033, -0.153]}>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Grid002.geometry}
+            material={materials.BaseMetalic}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Grid002_1.geometry}
+            material={materials.BaseMetalic}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Grid002_2.geometry}
+            material={materials.BaseMetalic}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.controller_middle.geometry}
+          position={[0.008, 0.033, -0.039]}
         >
-          <MeshTransmissionMaterial {...materialProps} />
+          <meshStandardMaterial
+            color={"#cbcbd3"}
+            metalness={1}
+            roughness={0.1}
+          />
         </mesh>
+        <group
+          position={[-0.21, 0.593, 0.134]}
+          rotation={[Math.PI / 2, 0, Math.PI]}
+          scale={1.669}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder011_1.geometry}
+            material={materials.MetalCenter}
+          >
+            <meshStandardMaterial
+              color={"#cbcbd3"}
+              metalness={1}
+              roughness={0.3}
+            />
+          </mesh>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder011_2.geometry}
+            material={materials.reflected_black}
+          />
+        </group>
+        <group position={[0.109, -0.585, 0.038]}>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Grid001.geometry}
+            material={materials.BaseMetalic}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Grid001_1.geometry}
+            material={materials.TeclasBlancas}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.visor_keyboard.geometry}
+          material={materials["visor_keyboard.001"]}
+          position={[-1.398, 0.595, 0.099]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.791}
+        />
+        <group
+          position={[-1.574, 1.102, -0.169]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.035}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder017.geometry}
+            material={materials.ButtonBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder017_1.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <group
+          position={[-1.455, 1.102, -0.169]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.035}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder018.geometry}
+            material={materials.ButtonBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder018_1.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <group
+          position={[-1.339, 1.102, -0.169]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.035}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder019.geometry}
+            material={materials.ButtonBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder019_1.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text001.geometry}
+          material={materials.ButtonBase}
+          position={[-0.553, 0.202, 0.094]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.038}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text002.geometry}
+          material={nodes.Text002.material}
+          position={[0.672, -0.892, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text003.geometry}
+          material={materials["Material.006"]}
+          position={[-0.811, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text004.geometry}
+          material={materials["Material.006"]}
+          position={[-0.707, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text005.geometry}
+          material={materials["Material.006"]}
+          position={[-0.604, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text006.geometry}
+          material={materials["Material.006"]}
+          position={[-0.5, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text007.geometry}
+          material={materials["Material.006"]}
+          position={[-0.397, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text008.geometry}
+          material={materials["Material.006"]}
+          position={[-0.293, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text009.geometry}
+          material={materials["Material.006"]}
+          position={[-0.189, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text010.geometry}
+          material={materials["Material.006"]}
+          position={[-0.086, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text011.geometry}
+          material={materials["Material.006"]}
+          position={[0.018, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text012.geometry}
+          material={materials["Material.006"]}
+          position={[0.131, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text013.geometry}
+          material={materials["Material.006"]}
+          position={[0.232, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text014.geometry}
+          material={materials["Material.006"]}
+          position={[0.338, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text015.geometry}
+          material={materials["Material.006"]}
+          position={[0.441, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text016.geometry}
+          material={materials["Material.006"]}
+          position={[0.546, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text017.geometry}
+          material={materials["Material.006"]}
+          position={[0.649, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text018.geometry}
+          material={materials["Material.006"]}
+          position={[0.753, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text019.geometry}
+          material={materials["Material.006"]}
+          position={[0.857, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text020.geometry}
+          material={materials["Material.006"]}
+          position={[0.96, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text021.geometry}
+          material={materials["Material.006"]}
+          position={[1.063, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text022.geometry}
+          material={materials["Material.006"]}
+          position={[1.165, -0.038, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text023.geometry}
+          material={materials["Material.006"]}
+          position={[0.439, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text024.geometry}
+          material={materials["Material.006"]}
+          position={[0.863, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text025.geometry}
+          material={materials["Material.006"]}
+          position={[1.237, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text026.geometry}
+          material={materials["Material.006"]}
+          position={[0.44, 0.826, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text027.geometry}
+          material={materials["Material.006"]}
+          position={[1.535, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text028.geometry}
+          material={materials["Material.006"]}
+          position={[1.816, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text029.geometry}
+          material={materials["Material.006"]}
+          position={[2.097, 0.474, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Plane001.geometry}
+          material={materials.white_texts}
+          position={[-1.455, 1.141, -0.106]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={[0.157, 0.142, 0.001]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text030.geometry}
+          material={nodes.Text030.material}
+          position={[-1.343, 1.141, -0.119]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.014}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text031.geometry}
+          material={nodes.Text031.material}
+          position={[-1.456, 1.141, -0.119]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.014}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text032.geometry}
+          material={nodes.Text032.material}
+          position={[-1.575, 1.141, -0.119]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.014}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.byekeyslogo_png.geometry}
+          material={materials.byekeyslogo_png}
+          position={[-1.348, -0.023, 0.078]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.094}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder007.geometry}
+          material={materials["Material.007"]}
+          position={[2.159, 0.928, -0.22]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder011.geometry}
+          material={materials["Material.007"]}
+          position={[-2.125, 0.928, -0.22]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder012.geometry}
+          material={materials["Material.007"]}
+          position={[1.964, -0.868, -0.22]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder013.geometry}
+          material={materials["Material.007"]}
+          position={[-1.741, -0.868, -0.22]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text033.geometry}
+          material={nodes.Text033.material}
+          position={[-1.717, 1.141, -0.119]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.014}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text034.geometry}
+          material={nodes.Text034.material}
+          position={[-1.868, 1.141, -0.119]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.014}
+        />
+        <group
+          position={[-1.718, 1.134, -0.164]}
+          rotation={[Math.PI, 0, Math.PI]}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder006.geometry}
+            material={materials.MetalCenter}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder006_1.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder016.geometry}
+          material={materials.ButtonBase}
+          position={[-1.863, 1.131, -0.165]}
+          rotation={[Math.PI, 0, Math.PI]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Text035.geometry}
+          material={materials["Material.006"]}
+          position={[0.866, 0.827, 0.079]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.029}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Plane011.geometry}
+          material={materials.mesh_holes}
+          position={[-2.027, -0.406, 0.071]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.111}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.button_1002.geometry}
+          material={materials.ButtonTraslicdBase}
+          position={[-0.553, 0.201, 0.079]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={[0.724, 0.425, 0.894]}
+        />
+        <group
+          position={[-0.581, 0.914, 0.079]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={[0.533, 0.425, 0.894]}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Plane011_1.geometry}
+            material={materials.ButtonTraslicdBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Plane011_2.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_button_5.geometry}
+          material={emissiveMaterial}
+          position={[2.101, 0.254, 0.084]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.959}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_shape_5.geometry}
+          material={materials.ButtonBase}
+          position={[2.102, 0.253, 0.1]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.26}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_button_4.geometry}
+          material={emissiveMaterial}
+          position={[1.689, 0.254, 0.084]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.959}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_shape_4.geometry}
+          material={materials.ButtonBase}
+          position={[1.689, 0.253, 0.1]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.26}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_button_3.geometry}
+          material={emissiveMaterial}
+          position={[1.276, 0.254, 0.084]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.959}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.record_shape_3.geometry}
+          material={materials.ButtonBase}
+          position={[1.277, 0.253, 0.1]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.26}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.pad_button_2.geometry}
+          material={emissiveMaterial}
+          position={[0.864, 0.254, 0.084]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.959}
+        />
+        <group position={[0.866, 0.253, 0.1]} rotation={[Math.PI, 0, Math.PI]}>
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Plane013.geometry}
+            material={materials.ButtonBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Plane013_1.geometry}
+            material={materials.ButtonBase}
+          />
+        </group>
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.prog_button_1.geometry}
+          material={emissiveMaterial}
+          position={[0.452, 0.254, 0.084]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.959}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.prog_shape_1.geometry}
+          material={materials.ButtonBase}
+          position={[0.452, 0.253, 0.1]}
+          rotation={[Math.PI / 2, 0, 0]}
+          scale={0.26}
+        />
+        <group
+          position={[1.516, 0.824, 0.13]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.742}
+        >
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cube021.geometry}
+            material={materials.ButtonBase}
+          />
+          <mesh
+            castShadow
+            receiveShadow
+            geometry={nodes.Cube021_1.geometry}
+            material={materials["Material.001"]}
+          />
+        </group>
+
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cube002.geometry}
+          material={emissiveMaterial}
+          position={[-2.259, 0.581, 0.085]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={[0.019, 0.722, 0.007]}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder002.geometry}
+          material={materials.Perilla}
+          position={[0.864, 0.607, 0.186]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.685}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder001.geometry}
+          material={materials.Perilla}
+          position={[0.864, 0.954, 0.186]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.685}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder003.geometry}
+          material={materials.Perilla}
+          position={[0.446, 0.607, 0.186]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.685}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder004.geometry}
+          material={materials.Perilla}
+          position={[0.446, 0.954, 0.186]}
+          rotation={[Math.PI, 0, Math.PI]}
+          scale={0.685}
+        />
+        {/* Switchs */}
+        <DragControls
+          dragLimits={[
+            [0, 0],
+            [0, 0.38],
+            [0, 0],
+          ]}
+        >
+          <group
+            position={[1.225, 0.626, 0.13]}
+            rotation={[Math.PI, 0, Math.PI]}
+            scale={0.742}
+            ref={FirstSwitchRef}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+          >
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube003_1.geometry}
+              material={materials.ButtonBase}
+            />
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube003_2.geometry}
+              material={materials["Material.001"]}
+            />
+          </group>
+        </DragControls>
+        <DragControls
+          dragLimits={[
+            [0, 0],
+            [-0.4, 0],
+            [0, 0],
+          ]}
+        >
+          <group
+            position={[1.802, 0.99, 0.13]}
+            rotation={[Math.PI, 0, Math.PI]}
+            scale={0.742}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+            ref={ThirdSwitchRef}
+          >
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube021.geometry}
+              material={materials.ButtonBase}
+            />
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube021_1.geometry}
+              material={materials["Material.001"]}
+            />
+          </group>
+        </DragControls>
+        <DragControls
+          dragLimits={[
+            [0, 0],
+            [-0.15, 0.25],
+            [0, 0],
+          ]}
+        >
+          <group
+            position={[2.096, 0.738, 0.13]}
+            rotation={[Math.PI, 0, Math.PI]}
+            onPointerOver={() => setHovered(true)}
+            onPointerOut={() => setHovered(false)}
+            scale={0.742}
+          >
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube021.geometry}
+              material={materials.ButtonBase}
+            />
+            <mesh
+              castShadow
+              receiveShadow
+              geometry={nodes.Cube021_1.geometry}
+              material={materials["Material.001"]}
+            />
+          </group>
+        </DragControls>
       </group>
-    </group>
+    </>
+    // </PivotControls>
   );
 }
 
-useGLTF.preload('./gltb/404_separate_text.glb');
+useGLTF.preload("./gltb/keyboard_for_R3F.glb");
