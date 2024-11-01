@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@100..900&display=swap");
+
+/*
+
+Titles:
+  font-family: "Libre Caslon Text", serif;
+  font-family: "Inter", serif;
+
+Screen:
+  font-family: "Cousine", monospace;
+*/
+
+@font-face {
+  font-family: "minecraftiaregular";
+  src: url("../public/fonts/minecraftia-regular-webfont.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.inter {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -24,4 +48,49 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+/* .content-embed {
+  position: relative;
+  background: white;
+  border-radius: 37.5px;
+  width: 375px;
+  height: 825px;
+  overflow: scroll;
+} */
+
+.content-embed {
+  background-color: rgb(255, 255, 255);
+  transform: rotate(180deg);
+  width: 486px;
+  height: 295px;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  /* border: 5px solid rgba(0, 0, 0, 0); */
+  /* padding: 20px; */
+}
+
+.content-embed:hover {
+  /* border-color: rgb(157, 66, 66); */
+}
+
+/* PixelWave.css */
+.pixel-wave-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.pixel-column {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.pixel-block {
+  width: 10px;
+  height: 5px;
+  opacity: 0; /* Empieza invisible */
+  background-color: #3498db;
 }

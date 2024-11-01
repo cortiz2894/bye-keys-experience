@@ -1,36 +1,52 @@
-import React, { useRef, useMemo, useState, useLayoutEffect } from "react";
+import React, {
+  useRef,
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useEffect,
+} from "react";
 import {
   useGLTF,
   OrbitControls,
-  TransformControls,
-  PivotControls,
-  BakeShadows,
   DragControls,
-  useHelper,
-  Bounds,
+  Outlines,
   useCursor,
+  CameraControls,
+  Html,
+  Mask,
 } from "@react-three/drei";
 
-import { applyProps } from "@react-three/fiber";
+import { useFrame, applyProps } from "@react-three/fiber";
 import * as THREE from "three";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
-import {
-  Selection,
-  Select,
-  EffectComposer,
-  Outline,
-} from "@react-three/postprocessing";
+import AudioPlayer from "./Player";
 
-export default function Model(props) {
+export default function Model({ showLetters }) {
+  const entireMeshRef = useRef();
   const FirstSwitchRef = useRef();
   const ThirdSwitchRef = useRef();
   const directionalLightRef = useRef();
-
-  useHelper(directionalLightRef, THREE.DirectionalLightHelper, 1);
+  const screenMeshRef = useRef();
+  const cameraControlsRef = useRef();
 
   const { nodes, materials, scene } = useGLTF("./gltb/keyboard_for_R3F.glb");
   const [hovered, setHovered] = useState();
+  const [cameraLocked, setCameraLocked] = useState(false);
+
+  const initialPosition = new THREE.Vector3(0, 0, 4);
+  const initialLookAt = new THREE.Vector3(0, -0.5, 0);
+  const screenPosition = new THREE.Vector3(
+    -1.3941316544501343,
+    -0.11664693742119203,
+    1.3025709527821105
+  );
+
+  const screenLookAt = new THREE.Vector3(
+    -1.3942662965015844,
+    -0.11702556662617417,
+    0.0947462790898788
+  );
 
   useCursor(hovered, "grab");
 
@@ -70,8 +86,60 @@ export default function Model(props) {
     });
   }, [nodes, materials]);
 
+  useLayoutEffect(() => {
+    handleResetCamera();
+  }, []);
+
+  const handleScreenClick = () => {
+    if (cameraControlsRef.current) {
+      showLetters(false);
+      cameraControlsRef.current
+        // .fitToBox(screenMeshRef.current, true)
+        .setLookAt(
+          screenPosition.x,
+          screenPosition.y,
+          screenPosition.z,
+          screenLookAt.x,
+          screenLookAt.y,
+          screenLookAt.z,
+          true
+        )
+        .then(() => {
+          console.log("cameraControlsRef.current: ", cameraControlsRef.current);
+          setCameraLocked(true);
+        });
+    }
+  };
+
+  const handleResetCamera = () => {
+    if (cameraControlsRef.current) {
+      cameraControlsRef.current.setLookAt(
+        initialPosition.x,
+        initialPosition.y,
+        initialPosition.z,
+        initialLookAt.x,
+        initialLookAt.y,
+        initialLookAt.z,
+        true
+      );
+      setCameraLocked(false);
+      showLetters(true);
+    }
+  };
+
+  useEffect(() => {
+    const handleWheel = (event) => {
+      if (cameraLocked) {
+        event.preventDefault();
+        handleResetCamera();
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [cameraLocked]);
+
   return (
-    // <PivotControls anchor={[0, 0, 0]}>
     <>
       <Perf position="top-left" />
       <directionalLight
@@ -90,14 +158,27 @@ export default function Model(props) {
         shadow-camera-top={10}
         shadow-camera-bottom={-10}
       />
-      <OrbitControls
+      <CameraControls
         makeDefault
-        minDistance={4}
-        maxDistance={4}
-        minPolarAngle={0.5}
-        maxPolarAngle={Math.PI / 2}
+        ref={cameraControlsRef}
+        minDistance={1.2} // Límite mínimo de distancia (zoom)
+        maxDistance={4} // Límite máximo de distancia (zoom)
+        minPolarAngle={0.5} // Ángulo polar mínimo (hacia abajo)
+        maxPolarAngle={Math.PI / 2} // Ángulo polar máximo (hacia arriba)
+        zoomSpeed={0.5} // Reduce la sensibilidad del zoom
+        dollySpeed={0.5} // Reduce la sensibilidad al mover hacia delante/atrás
+        panSpeed={0.5}
+        azimuthRotateSpeed={0.5} // Reduce la velocidad de rotación horizontal
+        polarRotateSpeed={0.5} // Reduce la velocidad de rotación vertical
+        enabled={!cameraLocked} // Deshabilitar controles cuando la cámara esté bloqueada
       />
-      <group {...props} dispose={null} castShadow receiveShadow>
+      <group
+        dispose={null}
+        castShadow
+        receiveShadow
+        ref={entireMeshRef}
+        position={[0, -0.7, 0]}
+      >
         <group
           position={[0.008, 0.033, 0.071]}
           rotation={[Math.PI, 0, Math.PI]}
@@ -119,110 +200,96 @@ export default function Model(props) {
           />
         </group>
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube.geometry}
           material={materials.TeclasNegras}
           position={[-1.453, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube001.geometry}
           material={materials.TeclasNegras}
           position={[-1.243, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube003.geometry}
           material={materials.TeclasNegras}
           position={[-0.821, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube004.geometry}
           material={materials.TeclasNegras}
           position={[-0.61, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube005.geometry}
           material={materials.TeclasNegras}
           position={[-0.399, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube007.geometry}
           material={materials.TeclasNegras}
           position={[0.022, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube008.geometry}
           material={materials.TeclasNegras}
           position={[0.233, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube010.geometry}
           material={materials.TeclasNegras}
           position={[0.645, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube011.geometry}
           material={materials.TeclasNegras}
           position={[0.856, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Tecla_Negra.geometry}
           material={materials.TeclasNegras}
           position={[1.067, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube014.geometry}
           material={materials.TeclasNegras}
           position={[1.474, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.Cube015.geometry}
           material={materials.TeclasNegras}
           position={[1.684, -0.393, 0.067]}
           rotation={[Math.PI, 0, Math.PI]}
         />
         <mesh
-          castShadow
-          receiveShadow
           geometry={nodes.screen.geometry}
           material={materials.Material}
           position={[-1.398, 0.584, 0.095]}
           rotation={[Math.PI, 0, Math.PI]}
           scale={1.074}
-        />
+          // onClick={handleScreenClick}
+          // ref={screenMeshRef}
+        >
+          {/* {hovered && (
+            <Outlines
+              opacity={0.1}
+              color="white"
+              depthWrite={true}
+              scale={1.02}
+              angle={0}
+            />
+          )} */}
+        </mesh>
         <group position={[0.008, 0.033, -0.153]}>
           <mesh
             castShadow
@@ -293,15 +360,28 @@ export default function Model(props) {
             material={materials.TeclasBlancas}
           />
         </group>
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.visor_keyboard.geometry}
-          material={materials["visor_keyboard.001"]}
-          position={[-1.398, 0.595, 0.099]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={0.791}
-        />
+        <group ref={screenMeshRef}>
+          <mesh
+            castShadow
+            receiveShadow
+            // geometry={nodes.visor_keyboard.geometry}
+            // material={materials["visor_keyboard.001"]}
+            position={[-1.398, 0.595, 0.099]}
+            rotation={[Math.PI / 2, 0, 0]}
+            scale={0.791}
+          >
+            <Html
+              rotation={[Math.PI / 2, Math.PI, 0]}
+              position={[0, 0, 0.012]}
+              occlude
+              className="content-embed"
+              distanceFactor={1.3}
+              transform
+            >
+              <AudioPlayer zoomToScreen={handleScreenClick} />
+            </Html>
+          </mesh>
+        </group>
         <group
           position={[-1.574, 1.102, -0.169]}
           rotation={[Math.PI, 0, Math.PI]}
@@ -1029,7 +1109,6 @@ export default function Model(props) {
         </DragControls>
       </group>
     </>
-    // </PivotControls>
   );
 }
 

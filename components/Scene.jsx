@@ -2,21 +2,36 @@
 
 import { Canvas } from "@react-three/fiber";
 import Model from "./Model";
-import { Environment, MeshReflectorMaterial } from "@react-three/drei";
-import styles from "./Scene.module.scss";
+import {
+  Environment,
+  MeshReflectorMaterial,
+  Float,
+  Html,
+  Text,
+} from "@react-three/drei";
 import { Leva } from "leva";
 import { Effects } from "./Effects";
+import { useRef, useState } from "react";
+import { BackgroundTitle } from "./BackgroundTitle";
 
 export default function Scene() {
+  const [showLetters, setShowLetters] = useState(true);
+
   return (
     <>
       <Leva collapsed />
-      <Canvas shadows camera={{ fov: 70, position: [0, -1, 4] }}>
+      <Canvas
+        gl={{
+          antialias: true,
+        }}
+        shadows
+        camera={{ fov: 70, position: [0, -1, 4] }}
+      >
         <color attach="background" args={["#191920"]} />
         <fog attach="fog" args={["#191920", 0, 15]} />
-
-        <Model />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position-y={-1.2}>
+        <BackgroundTitle showLetters={showLetters} />
+        <Model showLetters={setShowLetters} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position-y={-1.9}>
           <planeGeometry args={[50, 50]} />
           <MeshReflectorMaterial
             blur={[300, 100]}
@@ -32,7 +47,6 @@ export default function Scene() {
           />
         </mesh>
         <Effects />
-
         <Environment preset="city" />
       </Canvas>
     </>
