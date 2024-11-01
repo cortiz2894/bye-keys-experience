@@ -20,6 +20,7 @@ import { useFrame, applyProps } from "@react-three/fiber";
 import * as THREE from "three";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
+import AudioPlayer from "./Player";
 
 export default function Model({ showLetters }) {
   const entireMeshRef = useRef();
@@ -377,17 +378,7 @@ export default function Model({ showLetters }) {
               distanceFactor={1.3}
               transform
             >
-              <div
-                className=" bg-[#242424] h-full w-full absolute left-0 top-0 cursor-pointer px-4 py-3"
-                onClick={handleScreenClick}
-              >
-                <p
-                  className="text-[#4e85fb] font-minicraftia"
-                  // style={{ fontFamily: "minecraftiaregular" }}
-                >
-                  Screen
-                </p>
-              </div>
+              <AudioPlayer zoomToScreen={handleScreenClick} />
             </Html>
           </mesh>
         </group>
