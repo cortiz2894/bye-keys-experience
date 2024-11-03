@@ -38,7 +38,7 @@ export function Effects() {
         <Bloom {...BloomProps} />
         <Vignette {...VignetteProps} />
         <Noise BlendFunction={BlendFunction.ADD} premultiply />
-        <DepthOfField {...DepthOfFieldProps} />
+        {/* <DepthOfField {...DepthOfFieldProps} /> */}
       </EffectComposer>
     )
   );

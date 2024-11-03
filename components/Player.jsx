@@ -1,37 +1,60 @@
 import { LiaBatteryHalfSolid } from "react-icons/lia";
+import { IoMdPlay, IoMdPause } from "react-icons/io";
+import { IoStopSharp } from "react-icons/io5";
+
 import { useState, useEffect, useRef } from "react";
+import { useControls } from "leva";
 import gsap from "gsap";
 
 const COLUMNS = 15;
 const MAX_BLOCKS = 15;
 const MIN_BLOCKS = 2;
+const DURATION = 0.3; // Duración rápida para la animación
+const INTERVAL = 500; // Intervalo para cambiar los picos
+const HEIGHT_VARIATION = [1, 3, 5, 7, 9, 15]; // Posibles alturas para simular los picos
 
 const AudioPlayer = ({ zoomToScreen }) => {
+  const [animationState, setAnimationState] = useState("play"); // "play", "pause", "stop"
   const columnRefs = useRef([]);
+  const timelines = useRef([]);
+  const intervalRef = useRef(null); // Referencia para el setInterval
 
   useEffect(() => {
-    columnRefs.current.forEach((column, columnIndex) => {
-      const animateColumn = () => {
-        const targetBlocks = Math.floor(
-          Math.random() * (MAX_BLOCKS - MIN_BLOCKS + 1) + MIN_BLOCKS
-        );
+    const animateColumns = () => {
+      columnRefs.current.forEach((column) => {
+        const targetBlocks =
+          HEIGHT_VARIATION[Math.floor(Math.random() * HEIGHT_VARIATION.length)];
         const blocks = Array.from(column.children);
 
         blocks.forEach((block, index) => {
           const isVisible = index < targetBlocks;
           gsap.to(block, {
             opacity: isVisible ? 1 : 0,
-            duration: 0.2,
-            delay: isVisible ? index * 0.05 : 0,
+            y: isVisible ? -index * 2.5 : 0,
+            ease: isVisible ? "power4.out" : "power4.in",
+            duration: DURATION,
+            delay: index * 0.02,
           });
         });
+      });
+    };
 
-        setTimeout(animateColumn, 1000);
-      };
+    if (animationState === "play") {
+      intervalRef.current = setInterval(animateColumns, 500);
+    } else if (animationState === "pause") {
+      clearInterval(intervalRef.current);
+    } else if (animationState === "stop") {
+      clearInterval(intervalRef.current);
+      columnRefs.current.forEach((column) => {
+        const blocks = Array.from(column.children);
+        blocks.forEach((block) => {
+          gsap.to(block, { opacity: 0, y: 0, duration: DURATION });
+        });
+      });
+    }
 
-      animateColumn();
-    });
-  }, []);
+    return () => clearInterval(intervalRef.current);
+  }, [animationState]);
 
   return (
     <div
@@ -43,18 +66,31 @@ const AudioPlayer = ({ zoomToScreen }) => {
         <LiaBatteryHalfSolid className="text-[#4e85fb] text-2xl" />
       </div>
       <div className="flex gap-5">
-        <div className="pixel-wave-container w-2/3 h-[90%]">
-          {Array.from({ length: COLUMNS }).map((_, columnIndex) => (
-            <div
-              key={columnIndex}
-              className="pixel-column"
-              ref={(el) => (columnRefs.current[columnIndex] = el)}
-            >
-              {Array.from({ length: MAX_BLOCKS }).map((_, blockIndex) => (
-                <div key={blockIndex} className="pixel-block"></div>
-              ))}
-            </div>
-          ))}
+        <div className="w-2/3 h-[90%] flex flex-col justify-end">
+          <div className="pixel-wave-container w-full">
+            {Array.from({ length: COLUMNS }).map((_, columnIndex) => (
+              <div
+                key={columnIndex}
+                className="pixel-column"
+                ref={(el) => (columnRefs.current[columnIndex] = el)}
+              >
+                {Array.from({ length: MAX_BLOCKS }).map((_, blockIndex) => (
+                  <div key={blockIndex} className="pixel-block"></div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-4 w-full">
+            <button onClick={() => setAnimationState("play")}>
+              <IoMdPlay className="text-[#4e85fb] text-xl" />
+            </button>
+            <button onClick={() => setAnimationState("pause")}>
+              <IoMdPause className="text-[#4e85fb] text-xl" />
+            </button>
+            <button onClick={() => setAnimationState("stop")}>
+              <IoStopSharp className="text-[#4e85fb] text-xl" />
+            </button>
+          </div>
         </div>
         <div
           className="border border-[#4e85fb] w-1/3 h-[90%] overflow-y-scroll overflow-x-hidden [&::-webkit-scrollbar]:w-2
