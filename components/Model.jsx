@@ -21,6 +21,7 @@ import * as THREE from "three";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
 import AudioPlayer from "./Player";
+import HolographicMaterial from "./materials/HolographicMaterial";
 
 export default function Model({ showLetters }) {
   const entireMeshRef = useRef();
@@ -60,6 +61,20 @@ export default function Model({ showLetters }) {
     }
   );
 
+  const { ...HolographicMaterialProps } = useControls("HolographicMaterial", {
+    fresnelAmount: { value: 0.2, min: 0.0, max: 1.0, label: "Fresnel Amount" },
+    fresnelOpacity: {
+      value: 0.0,
+      min: 0.0,
+      max: 1.0,
+      label: "Fresnel Opacity",
+    },
+    scanlineSize: { value: 7.7, min: 1.0, max: 15, label: "Scanline size" },
+    hologramBrightness: { value: 0.14, min: 0.0, max: 2, label: "Brightness" },
+    signalSpeed: { value: 1.19, min: 0.0, max: 2, label: "Signal Speed" },
+    hologramColor: { value: "#c7d0db", label: "Hologram Color" },
+  });
+
   const emissiveMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -72,19 +87,6 @@ export default function Model({ showLetters }) {
       }),
     []
   );
-
-  useLayoutEffect(() => {
-    Object.values(nodes).forEach((node) => {
-      if (node.isMesh) {
-        node.castShadow = true;
-        node.receiveShadow = true;
-      }
-    });
-    applyProps(materials["visor_keyboard.001"], {
-      emissiveIntensity: 1.13,
-      toneMapped: false,
-    });
-  }, [nodes, materials]);
 
   useLayoutEffect(() => {
     handleResetCamera();
@@ -165,6 +167,8 @@ export default function Model({ showLetters }) {
         maxDistance={4} // Límite máximo de distancia (zoom)
         minPolarAngle={0.5} // Ángulo polar mínimo (hacia abajo)
         maxPolarAngle={Math.PI / 2} // Ángulo polar máximo (hacia arriba)
+        minAzimuthAngle={-Math.PI / 2.5} // Límite de rotación horizontal hacia la izquierda
+        maxAzimuthAngle={Math.PI / 2.5} // Límite de rotación horizontal hacia la derecha
         zoomSpeed={0.5} // Reduce la sensibilidad del zoom
         dollySpeed={0.5} // Reduce la sensibilidad al mover hacia delante/atrás
         panSpeed={0.5}
@@ -361,18 +365,39 @@ export default function Model({ showLetters }) {
           />
         </group>
         <group ref={screenMeshRef}>
-          <mesh
+          {/* <mesh
             castShadow
             receiveShadow
+            geometry={nodes.visor_keyboard.geometry}
+            position={[-1.398, 0.595, 1]}
+            rotation={[Math.PI / 2, 0, 0]}
+            scale={0.791}
+          >
+            <HolographicMaterial
+              {...HolographicMaterialProps}
+              // fresnelAmount={0.18}
+              // fresnelOpacity={0.25}
+              // scanlineSize={7.4}
+              // hologramBrightness={1.1}
+              // signalSpeed={0.89}
+              // hologramColor={"#c7d0db"}
+              transparen={true}
+              opacity={1}
+            />
+          </mesh> */}
+          <mesh
+            // castShadow
+            // receiveShadow
             // geometry={nodes.visor_keyboard.geometry}
             // material={materials["visor_keyboard.001"]}
-            position={[-1.398, 0.595, 0.099]}
+            position={[-1.398, 0.595, 0.1]}
             rotation={[Math.PI / 2, 0, 0]}
             scale={0.791}
           >
             <Html
               rotation={[Math.PI / 2, Math.PI, 0]}
               position={[0, 0, 0.012]}
+              // occlude="blending"
               occlude
               className="content-embed"
               distanceFactor={1.3}
