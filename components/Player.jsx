@@ -1,23 +1,51 @@
 import { LiaBatteryHalfSolid } from "react-icons/lia";
 import { IoMdPlay, IoMdPause } from "react-icons/io";
-import { IoStopSharp } from "react-icons/io5";
 
-import { useState, useEffect, useRef } from "react";
-import { useControls } from "leva";
+import { useLayoutEffect, useEffect, useRef } from "react";
 import gsap from "gsap";
 
 const COLUMNS = 15;
-const MAX_BLOCKS = 15;
-const MIN_BLOCKS = 2;
-const DURATION = 0.3; // Duración rápida para la animación
-const INTERVAL = 500; // Intervalo para cambiar los picos
-const HEIGHT_VARIATION = [1, 3, 5, 7, 9, 15]; // Posibles alturas para simular los picos
+const DURATION = 0.3;
+const HEIGHT_VARIATION = [1, 3, 5, 7, 9, 15];
 
-const AudioPlayer = ({ zoomToScreen }) => {
-  const [animationState, setAnimationState] = useState("play"); // "play", "pause", "stop"
+const PLAYLIST = [
+  {
+    fileName: "Aura-Long-Version-chosic.com.mp3",
+    id: 1,
+  },
+  {
+    fileName: "When-I-Was-A-Boy.mp3",
+    id: 2,
+  },
+  {
+    fileName: "Inspire-ashutosh.mp3",
+    id: 3,
+  },
+  {
+    fileName: "Aura-Long-Version-chosic2.com.mp3",
+    id: 4,
+  },
+  {
+    fileName: "When-I-Was-A-Boy2.mp3",
+    id: 5,
+  },
+  {
+    fileName: "Inspire-ashutosh2.mp3",
+    id: 6,
+  },
+];
+
+const AudioPlayer = ({ zoomToScreen, audioControls }) => {
+  const { isPlaying, playAudio, pauseAudio, fileName, loadAudio } =
+    audioControls;
   const columnRefs = useRef([]);
-  const timelines = useRef([]);
-  const intervalRef = useRef(null); // Referencia para el setInterval
+  const intervalRef = useRef(null);
+  const fileNameRef = useRef(null);
+  const fileNameContainerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    loadAudio(`/audio/${PLAYLIST[0].fileName}`);
+  }, []);
 
   useEffect(() => {
     const animateColumns = () => {
@@ -39,22 +67,50 @@ const AudioPlayer = ({ zoomToScreen }) => {
       });
     };
 
-    if (animationState === "play") {
+    if (isPlaying) {
       intervalRef.current = setInterval(animateColumns, 500);
-    } else if (animationState === "pause") {
+    } else if (!isPlaying) {
       clearInterval(intervalRef.current);
-    } else if (animationState === "stop") {
-      clearInterval(intervalRef.current);
-      columnRefs.current.forEach((column) => {
-        const blocks = Array.from(column.children);
-        blocks.forEach((block) => {
-          gsap.to(block, { opacity: 0, y: 0, duration: DURATION });
-        });
-      });
     }
 
     return () => clearInterval(intervalRef.current);
-  }, [animationState]);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    gsap.killTweensOf(fileNameRef.current);
+
+    if (fileNameRef.current) {
+      fileNameRef.current.style.transform = "translateX(0)";
+    }
+    const titleAnimation = () => {
+      if (fileNameRef.current && fileName.length > 25) {
+        const titleWidth = fileNameRef.current.offsetWidth - 50;
+        const containerWidth = fileNameContainerRef.current.offsetWidth;
+        gsap.fromTo(
+          fileNameRef.current,
+          { x: 0, delay: 1 },
+          {
+            x: -(containerWidth - titleWidth),
+            duration: 7,
+            ease: "none",
+            repeat: -1,
+            delay: 1,
+            yoyo: true,
+          }
+        );
+      }
+    };
+
+    titleAnimation();
+
+    return () => {
+      gsap.killTweensOf(fileNameRef.current);
+    };
+  }, [fileName]);
+
+  const selectSong = (file) => {
+    loadAudio(`/audio/${file.fileName}`);
+  };
 
   return (
     <div
@@ -62,33 +118,54 @@ const AudioPlayer = ({ zoomToScreen }) => {
       onClick={zoomToScreen}
     >
       <div className="w-full flex justify-between">
-        <p className="text-[#4e85fb] font-minicraftia text-xl">Bye Keys</p>
+        <div
+          className="w-[80%] overflow-hidden whitespace-nowrap"
+          ref={fileNameContainerRef}
+        >
+          <p
+            ref={fileNameRef}
+            className="text-[#4e85fb] font-minicraftia text-xl max-w-[90%] inline-block"
+          >
+            {fileName ?? ""}
+          </p>
+        </div>
         <LiaBatteryHalfSolid className="text-[#4e85fb] text-2xl" />
       </div>
-      <div className="flex gap-5">
+      <div className="flex gap-5 h-full">
         <div className="w-2/3 h-[90%] flex flex-col justify-end">
           <div className="pixel-wave-container w-full">
             {Array.from({ length: COLUMNS }).map((_, columnIndex) => (
               <div
-                key={columnIndex}
+                key={`column-${columnIndex}`}
                 className="pixel-column"
                 ref={(el) => (columnRefs.current[columnIndex] = el)}
               >
-                {Array.from({ length: MAX_BLOCKS }).map((_, blockIndex) => (
-                  <div key={blockIndex} className="pixel-block"></div>
+                {Array.from({ length: COLUMNS }).map((_, blockIndex) => (
+                  <div
+                    key={`block-${blockIndex}`}
+                    className="pixel-block"
+                    style={{
+                      opacity: blockIndex === 0 ? "1" : "0",
+                    }}
+                  ></div>
                 ))}
               </div>
             ))}
           </div>
           <div className="flex gap-2 mt-4 w-full">
-            <button onClick={() => setAnimationState("play")}>
+            <button
+              onClick={() => {
+                playAudio();
+              }}
+            >
               <IoMdPlay className="text-[#4e85fb] text-xl" />
             </button>
-            <button onClick={() => setAnimationState("pause")}>
+            <button
+              onClick={() => {
+                pauseAudio();
+              }}
+            >
               <IoMdPause className="text-[#4e85fb] text-xl" />
-            </button>
-            <button onClick={() => setAnimationState("stop")}>
-              <IoStopSharp className="text-[#4e85fb] text-xl" />
             </button>
           </div>
         </div>
@@ -100,14 +177,24 @@ const AudioPlayer = ({ zoomToScreen }) => {
           <p className="font-minicraftia bg-[#4e85fb] p-2 text-black text-sm">
             Playlist
           </p>
-          <ul className="flex flex-col gap-2 p-2 border-r border-[#4e85fb]">
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 1</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 2</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 3</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 4</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 5</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 6</li>
-            <li className="text-[#4e85fb] text-sm font-minicraftia">Song 7</li>
+          <ul className="flex flex-col border-r border-[#4e85fb]">
+            {PLAYLIST.map((file, i) => {
+              return (
+                <li
+                  key={`file-${file.id}`}
+                  className={`
+                  ${
+                    file.fileName === fileName
+                      ? "text-black bg-[#4b68a5]"
+                      : "text-[#4e85fb] hover:bg-[#3d3d3d]"
+                  } 
+                  px-2 py-2  text-sm font-minicraftia text-ellipsis overflow-hidden whitespace-nowrap`}
+                  onClick={() => selectSong(file)}
+                >
+                  {file.fileName}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
