@@ -7,13 +7,10 @@ import React, {
 } from "react";
 import {
   useGLTF,
-  OrbitControls,
   DragControls,
-  Outlines,
   useCursor,
   CameraControls,
   Html,
-  Mask,
 } from "@react-three/drei";
 
 import { useFrame, applyProps } from "@react-three/fiber";
@@ -23,7 +20,7 @@ import { useControls } from "leva";
 import AudioPlayer from "./Player";
 import HolographicMaterial from "./materials/HolographicMaterial";
 
-export default function Model({ showLetters }) {
+export default function Model({ showLetters, audioControls }) {
   const entireMeshRef = useRef();
   const FirstSwitchRef = useRef();
   const ThirdSwitchRef = useRef();
@@ -37,6 +34,7 @@ export default function Model({ showLetters }) {
 
   const initialPosition = new THREE.Vector3(0, 0, 4);
   const initialLookAt = new THREE.Vector3(0, -0.5, 0);
+
   const screenPosition = new THREE.Vector3(
     -1.3941316544501343,
     -0.11664693742119203,
@@ -403,7 +401,10 @@ export default function Model({ showLetters }) {
               distanceFactor={1.3}
               transform
             >
-              <AudioPlayer zoomToScreen={handleScreenClick} />
+              <AudioPlayer
+                zoomToScreen={handleScreenClick}
+                audioControls={audioControls}
+              />
             </Html>
           </mesh>
         </group>

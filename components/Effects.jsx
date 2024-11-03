@@ -26,11 +26,15 @@ export function Effects() {
     darkness: { value: 1.1, min: 0, max: 5 },
   });
 
-  const { ...DepthOfFieldProps } = useControls("DepthOfField", {
-    focusDistance: { value: 0.02, min: 0, max: 0.05, step: 0.001 },
-    focuslength: { value: 0.91, min: 0, max: 2 },
-    bokehScale: { value: 6.2, min: 0, max: 10 },
-  });
+  const { enabled: DepthOfFieldEnabled, ...DepthOfFieldProps } = useControls(
+    "DepthOfField",
+    {
+      enabled: false,
+      focusDistance: { value: 0.02, min: 0, max: 0.05, step: 0.001 },
+      focuslength: { value: 0.91, min: 0, max: 2 },
+      bokehScale: { value: 6.2, min: 0, max: 10 },
+    }
+  );
 
   return (
     enabled && (
@@ -38,7 +42,7 @@ export function Effects() {
         <Bloom {...BloomProps} />
         <Vignette {...VignetteProps} />
         <Noise BlendFunction={BlendFunction.ADD} premultiply />
-        {/* <DepthOfField {...DepthOfFieldProps} /> */}
+        {DepthOfFieldEnabled && <DepthOfField {...DepthOfFieldProps} />}
       </EffectComposer>
     )
   );

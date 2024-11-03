@@ -11,8 +11,9 @@ import {
 } from "@react-three/drei";
 import { Leva } from "leva";
 import { Effects } from "./Effects";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { BackgroundTitle } from "./BackgroundTitle";
+import { useAudio } from "../context/AudioManager";
 
 export default function Scene() {
   const [showLetters, setShowLetters] = useState(true);
@@ -30,7 +31,9 @@ export default function Scene() {
         <color attach="background" args={["#191920"]} />
         <fog attach="fog" args={["#191920", 0, 15]} />
         <BackgroundTitle showLetters={showLetters} />
-        <Model showLetters={setShowLetters} />
+        <Float rotationIntensity={0.1} floatingRange={[0, 0.1]} speed={0.2}>
+          <Model audioControls={useAudio()} showLetters={setShowLetters} />
+        </Float>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position-y={-1.9}>
           <planeGeometry args={[50, 50]} />
           <MeshReflectorMaterial
