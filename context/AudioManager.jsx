@@ -31,6 +31,7 @@ const AudioManager = ({ children }) => {
       audioRef.current.load();
       audioRef.current.onloadedmetadata = () => {
         setDuration(formatTime(audioRef.current.duration));
+
         playAudio();
       };
     }
