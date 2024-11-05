@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { formatTime } from "../utils/formatTime";
 
 const AudioContext = createContext();
 
@@ -29,7 +30,7 @@ const AudioManager = ({ children }) => {
       setFileName(file.split("/").pop());
       audioRef.current.load();
       audioRef.current.onloadedmetadata = () => {
-        setDuration(audioRef.current.duration);
+        setDuration(formatTime(audioRef.current.duration));
         playAudio();
       };
     }
@@ -54,11 +55,11 @@ const AudioManager = ({ children }) => {
 
   useEffect(() => {
     const handleLoadedMetadata = () => {
-      setDuration(audioRef.current.duration);
+      setDuration(formatTime(audioRef.current.duration));
     };
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audioRef.current.currentTime);
+      setCurrentTime(formatTime(audioRef.current.currentTime));
     };
 
     if (audioRef.current) {

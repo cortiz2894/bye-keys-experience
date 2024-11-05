@@ -19,6 +19,7 @@ import { Perf } from "r3f-perf";
 import { useControls } from "leva";
 import AudioPlayer from "./Player";
 import HolographicMaterial from "./materials/HolographicMaterial";
+import { MeshHoleTexture } from "./textures/MeshHoleTexture";
 
 export default function Model({ showLetters, audioControls }) {
   const entireMeshRef = useRef();
@@ -54,24 +55,24 @@ export default function Model({ showLetters, audioControls }) {
     {
       intensity: { value: 0.85, min: 0, max: 5, step: 0.05 },
       positionY: { value: 3.4, min: -10, max: 20, step: 0.1 },
-      positionX: { value: 0, min: -10, max: 20, step: 0.1 },
+      positionX: { value: -1, min: -10, max: 20, step: 0.1 },
       positionZ: { value: 10, min: -10, max: 20, step: 0.1 },
     }
   );
 
-  const { ...HolographicMaterialProps } = useControls("HolographicMaterial", {
-    fresnelAmount: { value: 0.2, min: 0.0, max: 1.0, label: "Fresnel Amount" },
-    fresnelOpacity: {
-      value: 0.0,
-      min: 0.0,
-      max: 1.0,
-      label: "Fresnel Opacity",
-    },
-    scanlineSize: { value: 7.7, min: 1.0, max: 15, label: "Scanline size" },
-    hologramBrightness: { value: 0.14, min: 0.0, max: 2, label: "Brightness" },
-    signalSpeed: { value: 1.19, min: 0.0, max: 2, label: "Signal Speed" },
-    hologramColor: { value: "#c7d0db", label: "Hologram Color" },
-  });
+  // const { ...HolographicMaterialProps } = useControls("HolographicMaterial", {
+  //   fresnelAmount: { value: 0.2, min: 0.0, max: 1.0, label: "Fresnel Amount" },
+  //   fresnelOpacity: {
+  //     value: 0.0,
+  //     min: 0.0,
+  //     max: 1.0,
+  //     label: "Fresnel Opacity",
+  //   },
+  //   scanlineSize: { value: 7.7, min: 1.0, max: 15, label: "Scanline size" },
+  //   hologramBrightness: { value: 0.14, min: 0.0, max: 2, label: "Brightness" },
+  //   signalSpeed: { value: 1.19, min: 0.0, max: 2, label: "Signal Speed" },
+  //   hologramColor: { value: "#c7d0db", label: "Hologram Color" },
+  // });
 
   const emissiveMaterial = useMemo(
     () =>
@@ -363,31 +364,8 @@ export default function Model({ showLetters, audioControls }) {
           />
         </group>
         <group ref={screenMeshRef}>
-          {/* <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.visor_keyboard.geometry}
-            position={[-1.398, 0.595, 1]}
-            rotation={[Math.PI / 2, 0, 0]}
-            scale={0.791}
-          >
-            <HolographicMaterial
-              {...HolographicMaterialProps}
-              // fresnelAmount={0.18}
-              // fresnelOpacity={0.25}
-              // scanlineSize={7.4}
-              // hologramBrightness={1.1}
-              // signalSpeed={0.89}
-              // hologramColor={"#c7d0db"}
-              transparen={true}
-              opacity={1}
-            />
-          </mesh> */}
           <mesh
-            // castShadow
-            // receiveShadow
-            // geometry={nodes.visor_keyboard.geometry}
-            // material={materials["visor_keyboard.001"]}
+            receiveShadow
             position={[-1.398, 0.595, 0.1]}
             rotation={[Math.PI / 2, 0, 0]}
             scale={0.791}
@@ -395,8 +373,8 @@ export default function Model({ showLetters, audioControls }) {
             <Html
               rotation={[Math.PI / 2, Math.PI, 0]}
               position={[0, 0, 0.012]}
-              // occlude="blending"
-              occlude
+              occlude="blending"
+              // occlude
               className="content-embed"
               distanceFactor={1.3}
               transform
@@ -851,7 +829,7 @@ export default function Model({ showLetters, audioControls }) {
           rotation={[Math.PI / 2, 0, 0]}
           scale={0.029}
         />
-        <mesh
+        {/* <mesh
           castShadow
           receiveShadow
           geometry={nodes.Plane011.geometry}
@@ -859,7 +837,8 @@ export default function Model({ showLetters, audioControls }) {
           position={[-2.027, -0.406, 0.071]}
           rotation={[Math.PI / 2, 0, 0]}
           scale={0.111}
-        />
+        /> */}
+        <MeshHoleTexture geometry={nodes.Plane011.geometry} />
         <mesh
           castShadow
           receiveShadow
