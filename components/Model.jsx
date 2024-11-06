@@ -183,18 +183,18 @@ export default function Model({ showLetters, audioControls }) {
       <CameraControls
         makeDefault
         ref={cameraControlsRef}
-        minDistance={1.2} // Límite mínimo de distancia (zoom)
-        maxDistance={4} // Límite máximo de distancia (zoom)
-        minPolarAngle={0.5} // Ángulo polar mínimo (hacia abajo)
-        maxPolarAngle={Math.PI / 2} // Ángulo polar máximo (hacia arriba)
-        minAzimuthAngle={-Math.PI / 2.5} // Límite de rotación horizontal hacia la izquierda
-        maxAzimuthAngle={Math.PI / 2.5} // Límite de rotación horizontal hacia la derecha
-        zoomSpeed={0.5} // Reduce la sensibilidad del zoom
-        dollySpeed={0.5} // Reduce la sensibilidad al mover hacia delante/atrás
+        minDistance={1.2}
+        maxDistance={4}
+        minPolarAngle={0.5}
+        maxPolarAngle={Math.PI / 2}
+        minAzimuthAngle={-Math.PI / 2.5}
+        maxAzimuthAngle={Math.PI / 2.5}
+        zoomSpeed={0.5}
+        dollySpeed={0.5}
         panSpeed={0.5}
-        azimuthRotateSpeed={0.5} // Reduce la velocidad de rotación horizontal
-        polarRotateSpeed={0.5} // Reduce la velocidad de rotación vertical
-        enabled={!cameraLocked} // Deshabilitar controles cuando la cámara esté bloqueada
+        azimuthRotateSpeed={0.5}
+        polarRotateSpeed={0.5}
+        enabled={!cameraLocked}
       />
       <group
         dispose={null}
@@ -301,19 +301,7 @@ export default function Model({ showLetters, audioControls }) {
           position={[-1.398, 0.584, 0.095]}
           rotation={[Math.PI, 0, Math.PI]}
           scale={1.074}
-          // onClick={handleScreenClick}
-          // ref={screenMeshRef}
-        >
-          {/* {hovered && (
-            <Outlines
-              opacity={0.1}
-              color="white"
-              depthWrite={true}
-              scale={1.02}
-              angle={0}
-            />
-          )} */}
-        </mesh>
+        ></mesh>
         <group position={[0.008, 0.033, -0.153]}>
           <mesh
             castShadow
@@ -387,6 +375,7 @@ export default function Model({ showLetters, audioControls }) {
         <group ref={screenMeshRef}>
           <mesh
             receiveShadow
+            castShadow
             position={[-1.398, 0.595, 0.1]}
             rotation={[Math.PI / 2, 0, 0]}
             scale={0.791}
@@ -394,8 +383,8 @@ export default function Model({ showLetters, audioControls }) {
             <Html
               rotation={[Math.PI / 2, Math.PI, 0]}
               position={[0, 0, 0.012]}
-              occlude="blending"
               // occlude
+              occlude="blending"
               className="content-embed"
               distanceFactor={1.3}
               transform
