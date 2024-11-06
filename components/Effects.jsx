@@ -33,7 +33,7 @@ export function Effects() {
   const { enabled: DepthOfFieldEnabled, ...DepthOfFieldProps } = useControls(
     "DepthOfField",
     {
-      enabled: true,
+      enabled: false,
       focusDistance: { value: 0.02, min: 0, max: 0.05, step: 0.001 },
       focuslength: { value: 0.91, min: 0, max: 2 },
       bokehScale: { value: 6.2, min: 0, max: 10 },
