@@ -36,6 +36,7 @@ const PLAYLIST = [
 ];
 
 const AudioPlayer = ({ zoomToScreen, audioControls }) => {
+
   const {
     isPlaying,
     playAudio,
@@ -45,6 +46,7 @@ const AudioPlayer = ({ zoomToScreen, audioControls }) => {
     duration,
     currentTime,
   } = audioControls;
+
   const columnRefs = useRef([]);
   const intervalRef = useRef(null);
   const fileNameRef = useRef(null);
@@ -193,7 +195,9 @@ const AudioPlayer = ({ zoomToScreen, audioControls }) => {
                   className={`
                   ${
                     file.fileName === fileName
+
                       ? "text-[#242424] bg-[#4e85fbbd] border border-[#242424]"
+
                       : "text-[#4e85fb] hover:bg-[#3d3d3d]"
                   } 
                   px-2 py-2  text-sm font-minicraftia text-ellipsis overflow-hidden whitespace-nowrap`}
