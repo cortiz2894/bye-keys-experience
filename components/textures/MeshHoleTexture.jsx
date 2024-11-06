@@ -7,16 +7,16 @@ const MeshHoleTexture = ({ geometry }) => {
     map: "/textures/meshHoles/SheetMetal002_2K-PNG_Color.png",
     displacementMap:
       "/textures/meshHoles/SheetMetal002_2K-PNG_Displacement.png",
-    metalnessMap: "/textures/meshHoles/SheetMetal002_2K-PNG_Metalness.png",
+    // metalnessMap: "/textures/meshHoles/SheetMetal002_2K-PNG_Metalness.png",
+    // roughnessMap: "/textures/meshHoles/SheetMetal002_2K-PNG_Roughness.png",
     normalMap: "/textures/meshHoles/SheetMetal002_2K-PNG_NormalDX.png",
     alphaMap: "/textures/meshHoles/SheetMetal002_2K-PNG_Opacity.png",
-    // roughnessMap: "/textures/meshHoles/SheetMetal002_2K-PNG_Roughness.png",
   });
 
   const { textureScale, ...textureProps } = useControls("Mesh Hole", {
     displacementScale: { value: 0.05, min: 0, max: 1, step: 0.01 },
     metalness: { value: 0.51, min: 0, max: 1, step: 0.01 },
-    roughness: { value: 0.3, min: 0, max: 1, step: 0.01 },
+    roughness: { value: 0.49, min: 0, max: 1, step: 0.01 },
     textureScale: { value: 0.85, min: 0, max: 10, step: 0.01 },
   });
 
@@ -28,7 +28,6 @@ const MeshHoleTexture = ({ geometry }) => {
 
   return (
     <mesh
-      castShadow
       receiveShadow
       geometry={geometry}
       position={[-2.027, -0.406, 0.071]}
