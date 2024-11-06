@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AudioManager from "../context/AudioManager";
+import WaveSVG from "@/components/layout/WaveSVG";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,7 +27,14 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <AudioManager>{children}</AudioManager>
+        <AudioManager>
+          <>
+            {children}
+            <div className="fixed bottom-6 right-6 z-[9999999]">
+              <WaveSVG />
+            </div>
+          </>
+        </AudioManager>
       </body>
     </html>
   );

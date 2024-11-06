@@ -12,7 +12,7 @@ import {
   CameraControls,
   Html,
 } from "@react-three/drei";
-
+import gsap from "gsap";
 import { useFrame, applyProps } from "@react-three/fiber";
 import * as THREE from "three";
 import { Perf } from "r3f-perf";
@@ -75,12 +75,25 @@ export default function Model({ showLetters, audioControls }) {
   // });
 
   const emissiveMaterial = useMemo(
-    () =>
+    (color = "#2e1aff") =>
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#2e1aff"),
+        color: new THREE.Color(color),
         toneMapped: false,
-        emissive: new THREE.Color("#2e1aff"),
+        emissive: new THREE.Color(color),
         emissiveIntensity: 18,
+        metalness: 0.5,
+        roughness: 0.3,
+      }),
+    []
+  );
+
+  const emissiveBackMaterial = useMemo(
+    (color = "#e13939") =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(color),
+        toneMapped: false,
+        emissive: new THREE.Color(color),
+        emissiveIntensity: 1,
         metalness: 0.5,
         roughness: 0.3,
       }),
@@ -135,6 +148,14 @@ export default function Model({ showLetters, audioControls }) {
         handleResetCamera();
       }
     };
+    gsap.to(emissiveMaterial, {
+      emissiveIntensity: cameraLocked ? 14 : 18,
+      duration: 1,
+    });
+    gsap.to(emissiveBackMaterial, {
+      emissiveIntensity: cameraLocked ? 7 : 1,
+      duration: 1,
+    });
 
     window.addEventListener("wheel", handleWheel, { passive: false });
     return () => window.removeEventListener("wheel", handleWheel);
@@ -419,24 +440,6 @@ export default function Model({ showLetters, audioControls }) {
             castShadow
             receiveShadow
             geometry={nodes.Cylinder018_1.geometry}
-            material={materials.ButtonBase}
-          />
-        </group>
-        <group
-          position={[-1.339, 1.102, -0.169]}
-          rotation={[Math.PI, 0, Math.PI]}
-          scale={0.035}
-        >
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder019.geometry}
-            material={materials.ButtonBase}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder019_1.geometry}
             material={materials.ButtonBase}
           />
         </group>
@@ -795,31 +798,6 @@ export default function Model({ showLetters, audioControls }) {
           rotation={[Math.PI, 0, Math.PI]}
           scale={0.014}
         />
-        <group
-          position={[-1.718, 1.134, -0.164]}
-          rotation={[Math.PI, 0, Math.PI]}
-        >
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder006.geometry}
-            material={materials.MetalCenter}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder006_1.geometry}
-            material={materials.ButtonBase}
-          />
-        </group>
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.Cylinder016.geometry}
-          material={materials.ButtonBase}
-          position={[-1.863, 1.131, -0.165]}
-          rotation={[Math.PI, 0, Math.PI]}
-        />
         <mesh
           castShadow
           receiveShadow
@@ -829,25 +807,20 @@ export default function Model({ showLetters, audioControls }) {
           rotation={[Math.PI / 2, 0, 0]}
           scale={0.029}
         />
-        {/* <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.Plane011.geometry}
-          material={materials.mesh_holes}
-          position={[-2.027, -0.406, 0.071]}
-          rotation={[Math.PI / 2, 0, 0]}
-          scale={0.111}
-        /> */}
         <MeshHoleTexture geometry={nodes.Plane011.geometry} />
+        {/* Accept button */}
         <mesh
           castShadow
           receiveShadow
           geometry={nodes.button_1002.geometry}
-          material={materials.ButtonTraslicdBase}
+          material={
+            cameraLocked ? emissiveMaterial : materials.ButtonTraslicdBase
+          }
           position={[-0.553, 0.201, 0.079]}
           rotation={[Math.PI, 0, Math.PI]}
           scale={[0.724, 0.425, 0.894]}
         />
+        {/* Back button */}
         <group
           position={[-0.581, 0.914, 0.079]}
           rotation={[Math.PI, 0, Math.PI]}
@@ -857,7 +830,7 @@ export default function Model({ showLetters, audioControls }) {
             castShadow
             receiveShadow
             geometry={nodes.Plane011_1.geometry}
-            material={materials.ButtonTraslicdBase}
+            material={emissiveBackMaterial}
           />
           <mesh
             castShadow
