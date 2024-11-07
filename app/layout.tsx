@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AudioManager from "../context/AudioManager";
 import WaveSVG from "@/components/layout/WaveSVG";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,6 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <Analytics />
         <AudioManager>{children}</AudioManager>
       </body>
     </html>
