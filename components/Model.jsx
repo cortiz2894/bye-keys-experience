@@ -13,12 +13,11 @@ import {
   Html,
 } from "@react-three/drei";
 import gsap from "gsap";
-import { useFrame, applyProps } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
 import AudioPlayer from "./Player";
-import HolographicMaterial from "./materials/HolographicMaterial";
 import { MeshHoleTexture } from "./textures/MeshHoleTexture";
 
 export default function Model({ showLetters, audioControls }) {
@@ -59,20 +58,6 @@ export default function Model({ showLetters, audioControls }) {
       positionZ: { value: 10, min: -10, max: 20, step: 0.1 },
     }
   );
-
-  // const { ...HolographicMaterialProps } = useControls("HolographicMaterial", {
-  //   fresnelAmount: { value: 0.2, min: 0.0, max: 1.0, label: "Fresnel Amount" },
-  //   fresnelOpacity: {
-  //     value: 0.0,
-  //     min: 0.0,
-  //     max: 1.0,
-  //     label: "Fresnel Opacity",
-  //   },
-  //   scanlineSize: { value: 7.7, min: 1.0, max: 15, label: "Scanline size" },
-  //   hologramBrightness: { value: 0.14, min: 0.0, max: 2, label: "Brightness" },
-  //   signalSpeed: { value: 1.19, min: 0.0, max: 2, label: "Signal Speed" },
-  //   hologramColor: { value: "#c7d0db", label: "Hologram Color" },
-  // });
 
   const emissiveMaterial = useMemo(
     (color = "#2e1aff") =>
@@ -814,6 +799,7 @@ export default function Model({ showLetters, audioControls }) {
           position={[-0.581, 0.914, 0.079]}
           rotation={[Math.PI, 0, Math.PI]}
           scale={[0.533, 0.425, 0.894]}
+          onClick={handleResetCamera}
         >
           <mesh
             castShadow
