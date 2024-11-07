@@ -51,7 +51,9 @@ const Modal = ({ onClose, show, children }: PropsWithChildren<ModalProps>) => {
   return (
     <div
       ref={ref}
-      className="w-screen h-screen flex justify-center fixed top-0 left-0 z-[99999999] backdrop-blur items-center"
+      className={
+        "w-screen h-screen flex justify-center fixed top-0 left-0 z-[99999999] backdrop-blur items-center"
+      }
     >
       <div
         ref={notificationRef}
