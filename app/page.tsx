@@ -7,6 +7,7 @@ import { Modal } from "@/components/Modal/Modal";
 import { useAudio } from "@/context/AudioManager";
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 const Scene = dynamic(() => import("@/components/Scene"), {
   ssr: false,
@@ -32,6 +33,7 @@ export default function Home() {
         <BasicButton text={"Okay I understand 👍"} action={handleAccept} />
       </Modal>
       <Footer />
+      <Analytics />
     </main>
   );
 }

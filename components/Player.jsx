@@ -22,21 +22,20 @@ const PLAYLIST = [
     id: 3,
   },
   {
-    fileName: "Aura-Long-Version-chosic2.com.mp3",
+    fileName: "Short-Version-chosic.com.mp3",
     id: 4,
   },
   {
-    fileName: "When-I-Was-A-Boy2.mp3",
+    fileName: "When-I-Was-A-Boy-2.mp3",
     id: 5,
   },
   {
-    fileName: "Inspire-ashutosh2.mp3",
+    fileName: "Inspire-ashutosh-2.mp3",
     id: 6,
   },
 ];
 
 const AudioPlayer = ({ zoomToScreen, audioControls }) => {
-
   const {
     isPlaying,
     playAudio,
@@ -195,9 +194,7 @@ const AudioPlayer = ({ zoomToScreen, audioControls }) => {
                   className={`
                   ${
                     file.fileName === fileName
-
                       ? "text-[#242424] bg-[#4e85fbbd] border border-[#242424]"
-
                       : "text-[#4e85fb] hover:bg-[#3d3d3d]"
                   } 
                   px-2 py-2  text-sm font-minicraftia text-ellipsis overflow-hidden whitespace-nowrap`}
