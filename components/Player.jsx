@@ -22,15 +22,15 @@ const PLAYLIST = [
     id: 3,
   },
   {
-    fileName: "Aura-Long-Version-chosic.com.mp3",
+    fileName: "Short-Version-chosic.com.mp3",
     id: 4,
   },
   {
-    fileName: "When-I-Was-A-Boy.mp3",
+    fileName: "When-I-Was-A-Boy-2.mp3",
     id: 5,
   },
   {
-    fileName: "Inspire-ashutosh.mp3",
+    fileName: "Inspire-ashutosh-2.mp3",
     id: 6,
   },
 ];
