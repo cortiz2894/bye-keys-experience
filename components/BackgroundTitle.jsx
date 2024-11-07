@@ -1,11 +1,7 @@
 import { useRef } from "react";
-import { useMask, Text } from "@react-three/drei";
+import { Text } from "@react-three/drei";
 import { easing } from "maath";
 import { useFrame } from "@react-three/fiber";
-import { Color } from "three";
-
-// const bloomColor = new Color("#fff");
-// bloomColor.multiplyScalar(1.5);
 
 const Letter = ({ value, speed, index, show }) => {
   const initialPosition = 0.9;
