@@ -1,5 +1,7 @@
 # Bye Keys
 
+![preview](https://github.com/user-attachments/assets/2c8538f8-136d-48c2-aa54-00b1e51b1a0e)
+
 ### 🎹 Description
 
 **Bye Keys** is a project inspired by a MIDI controller, fused with the aesthetics of the 80s and 90s. The design and 3D modeling are entirely original and were created in Blender, allowing full control over the look and functionality of each visual detail. This project was an opportunity to explore creativity, design skills, and knowledge in 3D modeling and animation.
